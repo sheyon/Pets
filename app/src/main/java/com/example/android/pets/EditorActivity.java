@@ -16,7 +16,7 @@
 package com.example.android.pets;
 
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -31,16 +31,10 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.android.pets.Data.PetContract.PetEntry;
-import com.example.android.pets.Data.PetDbHelper;
 
-import static android.widget.Toast.makeText;
-
-/**
- * Allows user to create a new pet or edit an existing one.
- */
 public class EditorActivity extends AppCompatActivity {
 
-    private PetDbHelper mDbHelper;
+    //private PetDbHelper mDbHelper;
 
     private EditText mNameEditText;
     private EditText mBreedEditText;
@@ -64,7 +58,7 @@ public class EditorActivity extends AppCompatActivity {
         mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
 
-        mDbHelper = new PetDbHelper(this);
+        //mDbHelper = new PetDbHelper(this);
 
         setupSpinner();
     }
@@ -80,11 +74,7 @@ public class EditorActivity extends AppCompatActivity {
 
         // Specify dropdown layout style - simple list view with 1 item per line
         genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
-
-        // Apply the adapter to the spinner
         mGenderSpinner.setAdapter(genderSpinnerAdapter);
-
-        // Set the integer mSelected to the constant values
         mGenderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
@@ -120,7 +110,7 @@ public class EditorActivity extends AppCompatActivity {
 
     private void insertPet()
     {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//      SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         String petNameEntered = mNameEditText.getText().toString().trim();
         String petBreedEntered = mBreedEditText.getText().toString().trim();
@@ -133,36 +123,51 @@ public class EditorActivity extends AppCompatActivity {
             return;
         }
 
-        if (petBreedEntered.equals(""))
-        {
-            petBreedEntered = "Unknown";
-        }
-
-        if (petWeightEntered.equals(""))
-        {
-            petWeightEntered = "0";
-        }
-
-        int petWeight = Integer.parseInt(petWeightEntered);
+//        OLD VALIDATION, NOW COVERED BY THE PET PROVIDER
+//
+//        if (petBreedEntered.equals(""))
+//        {
+//            petBreedEntered = "Unknown";
+//        }
+//
+//        if (petWeightEntered.equals(""))
+//        {
+//            petWeightEntered = "0";
+//        }
+//
+//        int petWeight = Integer.parseInt(petWeightEntered);
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, petNameEntered);
         values.put(PetEntry.COLUMN_PET_BREED, petBreedEntered);
         values.put(PetEntry.COLUMN_PET_GENDER, mGender);
-        values.put(PetEntry.COLUMN_PET_WEIGHT, petWeight);
+        values.put(PetEntry.COLUMN_PET_WEIGHT, petWeightEntered);
 
-        long newPetId = db.insert(PetEntry.TABLE_NAME, null, values);
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-        if (newPetId == -1)
+        if (newUri == null)
         {
-            Toast fail = Toast.makeText(this, petNameEntered + " could not be added!" , Toast.LENGTH_SHORT);
-            fail.show();
+            Toast.makeText(this, getString(R.string.editor_insert_pet_failed), Toast.LENGTH_SHORT).show();
         }
         else
         {
-            Toast success = Toast.makeText(this, petNameEntered + " added! ID: " + newPetId, Toast.LENGTH_SHORT);
-            success.show();
+            Toast.makeText(this, getString(R.string.editor_insert_pet_successful), Toast.LENGTH_SHORT).show();
         }
+
+//        OLD CODE FOR DIRECT DATABASE INTERACTION
+//
+//        long newPetId = db.insert(PetEntry.TABLE_NAME, null, values);
+//
+//        if (newPetId == -1)
+//        {
+//            Toast fail = Toast.makeText(this, petNameEntered + " could not be added!" , Toast.LENGTH_SHORT);
+//            fail.show();
+//        }
+//        else
+//        {
+//            Toast success = Toast.makeText(this, petNameEntered + " added! ID: " + newPetId, Toast.LENGTH_SHORT);
+//            success.show();
+//        }
 
         finish();
     }
@@ -185,9 +190,9 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
 
             case R.id.action_delete:
-
+                //nothing yet
                 return true;
-            // Respond to a click on the "Up" arrow button in the app bar
+
             case android.R.id.home:
                 // Navigate back to parent activity (CatalogActivity)
                 NavUtils.navigateUpFromSameTask(this);

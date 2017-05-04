@@ -18,34 +18,23 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteCursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.Data.PetContract.PetEntry;
-import com.example.android.pets.Data.PetDbHelper;
-
-import org.w3c.dom.Text;
 
 import java.util.Arrays;
 
-import static android.os.Build.ID;
-
-
-/**
- * Displays list of pets that were entered and stored in the app.
- */
 public class CatalogActivity extends AppCompatActivity {
 
-    private PetDbHelper mDbHelper;
+    //private PetDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +51,7 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        mDbHelper = new PetDbHelper(this);
+        //mDbHelper = new PetDbHelper(this);
         displayDatabaseInfo();
     }
 
@@ -73,7 +62,7 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void displayDatabaseInfo() {
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        //db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
                 PetEntry._ID,
@@ -83,7 +72,8 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_PET_WEIGHT
         };
 
-        Cursor cursor = db.query(PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+        //Cursor cursor = db.query(PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
 
         try
         {
@@ -117,14 +107,17 @@ public class CatalogActivity extends AppCompatActivity {
         }
         finally
         {
-            cursor.close();
+            if (cursor != null)
+            {
+                cursor.close();
+            }
         }
-
-
     }
 
     private void insertPet() {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        //SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        //long newPetId = db.insert(PetEntry.TABLE_NAME, null, values);
+        //Log.v("Logging!", "New Pet ID: " + newPetId);
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, "Toto");
@@ -132,14 +125,16 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        long newPetId = db.insert(PetEntry.TABLE_NAME, null, values);
-        Log.v("Logging!", "New Pet ID: " + newPetId);
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
     private void deleteAllPets() {
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        //SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        //db.delete(PetEntry.TABLE_NAME, null, null);
 
-        db.delete(PetEntry.TABLE_NAME, null, null);
+        int rowsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
+        Toast.makeText(this, "Database cleared! " + rowsDeleted + " pets deleted!", Toast.LENGTH_SHORT).show();
+
         displayDatabaseInfo();
     }
 
