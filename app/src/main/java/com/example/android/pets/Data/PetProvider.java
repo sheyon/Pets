@@ -61,6 +61,9 @@ public class PetProvider extends ContentProvider
             default:
                 throw new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
+
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
         return cursor;
     }
 
@@ -112,6 +115,8 @@ public class PetProvider extends ContentProvider
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
             return null;
         }
+
+        getContext().getContentResolver().notifyChange(uri, null);
 
         return ContentUris.withAppendedId(uri, id);
     }
@@ -167,7 +172,14 @@ public class PetProvider extends ContentProvider
     {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-        return  db.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+        int rowsDeleted = db.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+
+        if (rowsDeleted != 0)
+        {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return rowsDeleted;
     }
 
     @Override
@@ -202,7 +214,11 @@ public class PetProvider extends ContentProvider
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         int rowsUpdated = db.update(PetEntry.TABLE_NAME, values, selection, selectionArgs);
-        Log.v("UPDATED PET DATABASE: ", rowsUpdated + " updated!");
+
+        if (rowsUpdated != 0)
+        {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
 
         return rowsUpdated;
     }
